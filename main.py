@@ -21,6 +21,8 @@ if __name__ == '__main__':
         agent = agent_type(agent_name+'@jabbers.one', 'aasd_erif')
         future = agent.start()
         # future.result()  # wait for agent to initialize
+    time.sleep(2)  # wait long enough to initialize all agents
+    print('All agents initialized. System ready to operate.')
 
     # tester1 = TestAgent("tester1@jabbers.one", "aasd_erif")
     # future = tester1.start()
