@@ -6,3 +6,18 @@
 3. Run TestAgent.py
 
 Communication is accomplished using a public XMPP server. Each agent requires an account. List of existing accounts in addresses_xmpp.csv. To register new agents visit: https://jabbers.one/en/register.php (please use the same password).
+
+
+
+## Sentry agent:
+
+example measuremets:
+
+```
+{
+  "temperature": 30,
+  "humidity": 15,
+  "co2": 79,
+  "wind": 14
+}
+```
