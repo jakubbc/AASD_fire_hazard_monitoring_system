@@ -17,12 +17,11 @@ def processMeasurements(results):
         isFire += 1
     if results["co2"] > Constants.Co2Threshold:
         isFire += 1
-    if results["wind"] > Constants.WindThreshold:
-        isFire += 1
     return isFire
 
 
 class SentryAgent(agent.Agent):
+
     class MonitoringService(PeriodicBehaviour):
         async def run(self):
             request = Message(str(self.get("mySelf")))
@@ -44,7 +43,8 @@ class SentryAgent(agent.Agent):
                     # TODO
                     # call service, sensor damaged
                     if self.get('logging'):
-                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    1 sensors discovered fire!")
+                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    1 sensors discovered fire - maintainence service called")
+                    await agent.Agent._async_stop(self.agent)
                 elif processMeasurements(json.loads(results.body)) == 2:
                     # TODO
                     # call service
@@ -55,13 +55,14 @@ class SentryAgent(agent.Agent):
                     self.agent.add_behaviour(self.agent.CheckNeighbours())
                     if self.get('logging'):
                         print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    3 sensors discovered fire!")
-                elif processMeasurements(json.loads(results.body)) == 4:
-                    # TODO
-                    # call fire!
-                    if self.get('logging'):
-                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    4 sensors discovered fire!")
+
 
     class SendMeasurementsService(CyclicBehaviour):
+        def get_state(self):
+            with open('params/' + self.get('mySelf').split('@')[0] + '.json', 'r') as f:
+                state = f.read()
+            return state
+
         async def run(self):
             msg = await self.receive()
             if msg:
@@ -74,14 +75,9 @@ class SentryAgent(agent.Agent):
                 else:
                     response.set_metadata("type", "neighborResponse") #response to neighbor request
 
-                # TODO
-                # some rest aip service here?
-
-                if self.get('mySelf') == "sentry1@jabbers.one":
-                    response.body = ' {"temperature": 90, "humidity": 9, "co2": 90, "wind": 90}'  # Set the fire ON message content
-                else:
-                    response.body = ' {"temperature": 20, "humidity": 20, "co2": 0.002, "wind": 20}'  # Set the fire OFF message content
+                response.body = self.get_state()
                 await self.send(response)
+
 
     class CheckNeighbours(OneShotBehaviour):
         async def run(self):
@@ -112,7 +108,7 @@ class SentryAgent(agent.Agent):
 
                     positiveCount = 0
                     for result in self.neighborResults:
-                        if processMeasurements(json.loads(result.body)) > 2:
+                        if processMeasurements(json.loads(result.body)) >= 2:
                             positiveCount += 1
 
                     if self.get('logging'):

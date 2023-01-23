@@ -1,7 +1,7 @@
 import random
 import time
 
-from spade import agent, quit_spade
+from spade import agent
 from spade.behaviour import OneShotBehaviour, CyclicBehaviour
 from spade.message import Message
 from spade.template import Template
