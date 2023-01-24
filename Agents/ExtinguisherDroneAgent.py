@@ -1,3 +1,4 @@
+import datetime
 import time
 import random
 
@@ -12,15 +13,17 @@ class ExtinguisherDroneAgent(agent.Agent):
         async def run(self):
             msg = await self.receive()  # wait for message for <timeout> seconds
             if msg:
-                print('Agent {} received a {} message: \'{}\''.format(str(self.agent.jid).split('@')[0],
-                                                                      msg.get_metadata('type'), msg.body))
+                print('[{}]    Agent [{}]    received a {} message: \'{}\''.format(datetime.datetime.now().time(),
+                                                                                   str(self.agent.jid).split('@')[0],
+                                                                                   msg.get_metadata('type'),
+                                                                                   msg.body))
                 # fly to target
                 time.sleep(1)
                 # extinguish
                 time.sleep(2)
                 # send info to camera drone
                 fire_rand = random.uniform(0, 1)
-                if fire_rand >= 0:
+                if fire_rand <= 0:
                     self.agent.add_behaviour(self.agent.SendMessExtinguisherConfirmation())
                 # fly to base
                 time.sleep(1)
