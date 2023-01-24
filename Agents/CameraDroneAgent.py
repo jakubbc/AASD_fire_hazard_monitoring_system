@@ -1,19 +1,24 @@
 import random
 import time
 
-from spade import agent, quit_spade
+from spade import agent
 from spade.behaviour import OneShotBehaviour, CyclicBehaviour
 from spade.message import Message
 from spade.template import Template
 
 
 class CameraDroneAgent(agent.Agent):
+    def __init__(self, jid: str, password: str, verify_security: bool = False):
+        super().__init__(jid, password, verify_security)
+        # custom fields defined here
+        self.served_sentry = ''
     class ReceiveMessCameraRequest(CyclicBehaviour):
         async def run(self):
             msg = await self.receive()  # wait for message for <timeout> seconds
             if msg:
+                self.agent.served_sentry = msg.body
                 print('Agent {} received a {} message: \'{}\''.format(str(self.agent.jid).split('@')[0],
-                                                                      msg.get_metadata('type'), msg.body))
+                                                                      msg.get_metadata('type'), self.agent.served_sentry))
                 # fly to sentry
                 time.sleep(1)
                 # simulate checking for fire
@@ -50,17 +55,14 @@ class CameraDroneAgent(agent.Agent):
         async def run(self):
             msg = Message(to='extinguisher1@jabbers.one')
             msg.set_metadata("type", "extinguisherRequest")
-            # TODO send message body based on sentry number param
-            msg.body = '1'
+            msg.body = self.agent.served_sentry
             await self.send(msg)
-            # await self.agent.stop()  # this line terminates agent
 
     class SendMessCallEmergency(OneShotBehaviour):
         async def run(self):
             msg = Message(to='caller1@jabbers.one')
             msg.set_metadata("type", "callEmergency")
-            # TODO send id of station requesting drone (serving as coordinates)
-            msg.body = '1'
+            msg.body = self.agent.served_sentry
             await self.send(msg)
 
     class SendMessCameraFree(OneShotBehaviour):
@@ -74,8 +76,7 @@ class CameraDroneAgent(agent.Agent):
         async def run(self):
             msg = Message(to='caller1@jabbers.one')
             msg.set_metadata("type", "faultySentry")
-            # TODO send message body based on sentry number param
-            msg.body = 'faulty sensor : 1'
+            msg.body = self.agent.served_sentry
             await self.send(msg)
 
     async def setup(self):

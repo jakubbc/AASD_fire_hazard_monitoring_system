@@ -36,7 +36,7 @@ class CallerAgent(agent.Agent):
                                                                       msg.get_metadata('type'), msg.body))
                 # call camera drone if it's available
                 if self.agent.camera_drone_available:
-                    self.agent.add_behaviour(self.agent.SendMessCameraRequest())
+                    self.agent.add_behaviour(self.agent.SendMessCameraRequest(msg.body))
                     self.agent.camera_drone_available = False
                 else:
                     print('Agent {}: drone already in use!'.format(str(self.agent.jid).split('@')[0]))
@@ -59,12 +59,14 @@ class CallerAgent(agent.Agent):
                 print(f'List of faulty sentries: self.agent.faulty_sentries')
 
     class SendMessCameraRequest(OneShotBehaviour):
+        def __init__(self, calling_sentry):
+            super().__init__()
+            self.calling_sentry = calling_sentry
+
         async def run(self):
             msg = Message(to='camera1@jabbers.one')
             msg.set_metadata("type", "cameraRequest")
-            # send id of station requesting drone (serving as coordinates)
-            # TODO make coordinate parameter
-            msg.body = '1'
+            msg.body = self.calling_sentry
             await self.send(msg)
 
     async def setup(self):

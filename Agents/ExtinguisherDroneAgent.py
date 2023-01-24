@@ -1,4 +1,5 @@
 import time
+import random
 
 from spade import agent, quit_spade
 from spade.behaviour import OneShotBehaviour, CyclicBehaviour
@@ -18,7 +19,9 @@ class ExtinguisherDroneAgent(agent.Agent):
                 # extinguish
                 time.sleep(2)
                 # send info to camera drone
-                self.agent.add_behaviour(self.agent.SendMessExtinguisherConfirmation())
+                fire_rand = random.uniform(0, 1)
+                if fire_rand >= 0:
+                    self.agent.add_behaviour(self.agent.SendMessExtinguisherConfirmation())
                 # fly to base
                 time.sleep(1)
 
