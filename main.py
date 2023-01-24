@@ -16,8 +16,8 @@ agent_names = [
 ]
 sentries = [ #name, logs, neighbors
     ('sentry1', True, ["sentry2@jabbers.one", "sentry3@jabbers.one"]),
-    ('sentry2', True, ["sentry1@jabbers.one", "sentry3@jabbers.one"]),
-    ('sentry3', True, ["sentry2@jabbers.one", "sentry1@jabbers.one"]),
+    ('sentry2', False, []), #["sentry1@jabbers.one", "sentry3@jabbers.one"]),
+    ('sentry3', False, []), #["sentry2@jabbers.one", "sentry1@jabbers.one"]),
     ('sentry4', False, []),
     # ('sentry5', False, []),
     # ('sentry6', False, []),
@@ -28,10 +28,10 @@ sentries = [ #name, logs, neighbors
 if __name__ == '__main__':
 
     # initialize all agents
-    # for agent_name, agent_type in agent_names:
-    #     agent = agent_type(agent_name+'@jabbers.one', 'aasd_erif')
-    #     future = agent.start()
-        # future.result()  # wait for agent to initialize
+    for agent_name, agent_type in agent_names:
+        agent = agent_type(agent_name+'@jabbers.one', 'aasd_erif')
+        future = agent.start()
+        future.result()  # wait for agent to initialize
 
     for sentryName, logging, neighbors in sentries:
         agent = SentryAgent(str(sentryName) + '@jabbers.one', "aasd_erif")
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         agent.set("mySelf", str(sentryName))
         agent.start(auto_register=True)
 
-        # future.result()  # wait for agent to initialize
+        future.result()  # wait for agent to initialize
     time.sleep(2)  # wait long enough to initialize all agents
     print('All agents initialized. System ready to operate.')
 

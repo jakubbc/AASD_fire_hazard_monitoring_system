@@ -24,11 +24,11 @@ class SentryAgent(agent.Agent):
 
     class MonitoringService(PeriodicBehaviour):
         async def run(self):
-            request = Message(str(self.get("mySelf")))
+            request = Message(str(self.get("mySelf")) + '@jabbers.one')
             request.set_metadata("type", "measurementRequest")
             await self.send(request)
             if self.get('logging'):
-                print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    checking measurements...")
+                print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    checking measurements...")
 
     class ProcessingService(CyclicBehaviour):
 
@@ -36,7 +36,7 @@ class SentryAgent(agent.Agent):
             results = await self.receive(timeout=10 * Constants.MeasurementSecondsInterval)
             if results is None:
                 if self.get('logging'):
-                    print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    measurementRequest timeout - none arrived")
+                    print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    measurementRequest timeout - none arrived")
                 # break/kill agent here?
             else:
                 if processMeasurements(json.loads(results.body)) == 1:
@@ -44,7 +44,7 @@ class SentryAgent(agent.Agent):
                     msg.set_metadata("type", "faultySentry")
                     msg.body = self.get('mySelf')
                     if self.get('logging'):
-                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    1 sensors discovered fire - maintainence service called")
+                        print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    1 sensors discovered fire - maintainence service called")
                     await self.send(msg)
                     # await agent.Agent._async_stop(self.agent)
                 elif processMeasurements(json.loads(results.body)) == 2:
@@ -52,17 +52,17 @@ class SentryAgent(agent.Agent):
                     msg.set_metadata("type", "faultySentry")
                     msg.body = self.get('mySelf')
                     if self.get('logging'):
-                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    2 sensors discovered fire - maintainence service and neighbours called")
+                        print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    2 sensors discovered fire - maintainence service and neighbours called")
                     await self.send(msg)
                     self.agent.add_behaviour(self.agent.CheckNeighbours())
                 elif processMeasurements(json.loads(results.body)) == 3:
                     self.agent.add_behaviour(self.agent.CheckNeighbours())
                     if self.get('logging'):
-                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    3 sensors discovered fire!")
+                        print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    3 sensors discovered fire!")
 
     class SendMeasurementsService(CyclicBehaviour):
         def get_state(self):
-            with open('params/' + self.get('mySelf').split('@')[0] + '.json', 'r') as f:
+            with open('params/' + self.get('mySelf') + '.json', 'r') as f:
                 state = f.read()
             return state
 
@@ -70,10 +70,10 @@ class SentryAgent(agent.Agent):
             msg = await self.receive()
             if msg:
                 if self.get('logging'):
-                    print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    got request from: '{msg.sender}'")
+                    print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    got request from: '{msg.sender}'")
 
                 response = Message(to=str(msg.sender))
-                if str(msg.sender) == self.get('mySelf'):
+                if str(msg.sender) == self.get('mySelf') + '@jabbers.one':
                     response.set_metadata("type", "measurementResponse") #response to itself
                 else:
                     response.set_metadata("type", "neighborResponse") #response to neighbor request
@@ -85,10 +85,10 @@ class SentryAgent(agent.Agent):
     class CheckNeighbours(OneShotBehaviour):
         async def run(self):
             if self.get('logging'):
-                print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    checking neighbors")
+                print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    checking neighbors")
             for neighbor in self.get('neighbors'):
                 if self.get('logging'):
-                    print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]          sending to: " + neighbor)
+                    print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]          sending to: " + neighbor)
                 msg = Message(to=neighbor)
                 msg.set_metadata("type", "measurementRequest")
                 await self.send(msg)
@@ -103,11 +103,11 @@ class SentryAgent(agent.Agent):
             if msg is not None:
                 self.neighborResults.append(msg)
                 if self.get('logging'):
-                    print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    neighbor response: {msg.sender}")
+                    print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    neighbor response: {msg.sender}")
 
                 if len(self.get('neighbors')) == len(self.neighborResults):
                     if self.get('logging'):
-                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    checking neighbor responses!")
+                        print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    checking neighbor responses!")
 
                     positiveCount = 0
                     for result in self.neighborResults:
@@ -115,7 +115,7 @@ class SentryAgent(agent.Agent):
                             positiveCount += 1
 
                     if self.get('logging'):
-                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    positive (fire)/all results: {positiveCount}/{len(self.neighborResults)}")
+                        print(f"[{datetime.datetime.now().time()}]    Agent [{self.get('mySelf')}]    positive (fire)/all results: {positiveCount}/{len(self.neighborResults)}")
                     self.neighborResults = []  # reset results
 
                     if positiveCount == 0:

@@ -1,4 +1,5 @@
 import time
+import datetime
 
 from spade import agent, quit_spade
 from spade.behaviour import OneShotBehaviour, CyclicBehaviour
@@ -18,45 +19,65 @@ class CallerAgent(agent.Agent):
         async def run(self):
             msg = await self.receive()  # wait for message for <timeout> seconds
             if msg:
-                print('Agent {} received a {} message: \'{}\''.format(str(self.agent.jid).split('@')[0],
-                                                                      msg.get_metadata('type'), msg.body))
+                print('[{}]    Agent [{}]    received a {} message: \'{}\''
+                      .format(datetime.datetime.now().time(),
+                              str(self.agent.jid).split('@')[0],
+                              msg.get_metadata('type'),
+                              msg.body))
                 # call 911 and set flag
                 if not self.agent.fire_brigade_called:
                     time.sleep(2)
-                    print('Agent {}: called 911!'.format(str(self.agent.jid).split('@')[0]))
+                    print('[{}]    Agent [{}]    called 911!'
+                          .format(datetime.datetime.now().time(),
+                                  str(self.agent.jid).split('@')[0]))
                     self.agent.fire_brigade_called = True
                 else:
-                    print('Agent {}: 911 already called!'.format(str(self.agent.jid).split('@')[0]))
+                    print('[{}]    Agent [{}]    911 already called!'.format(datetime.datetime.now().time(),
+                                                                             str(self.agent.jid).split('@')[0]))
 
     class ReceiveMessSmallFire(CyclicBehaviour):
         async def run(self):
             msg = await self.receive()  # wait for message for <timeout> seconds
             if msg:
-                print('Agent {} received a {} message: \'{}\''.format(str(self.agent.jid).split('@')[0],
-                                                                      msg.get_metadata('type'), msg.body))
+                print('[{}]    Agent [{}]    received a {} message: \'{}\''
+                      .format(datetime.datetime.now().time(),
+                              str(self.agent.jid).split('@')[0],
+                              msg.get_metadata('type'),
+                              msg.body))
                 # call camera drone if it's available
                 if self.agent.camera_drone_available:
                     self.agent.add_behaviour(self.agent.SendMessCameraRequest(msg.body))
                     self.agent.camera_drone_available = False
                 else:
-                    print('Agent {}: drone already in use!'.format(str(self.agent.jid).split('@')[0]))
+                    print('[{}]    Agent [{}]    drone already in use!'
+                          .format(datetime.datetime.now().time(), str(self.agent.jid).split('@')[0]))
 
     class ReceiveMessCameraFree(CyclicBehaviour):
         async def run(self):
             msg = await self.receive()  # wait for message for <timeout> seconds
             if msg:
-                print('Agent {} received a {} message: \'{}\''.format(str(self.agent.jid).split('@')[0],
-                                                                      msg.get_metadata('type'), msg.body))
+                print('[{}]    Agent [{}]    received a {} message: \'{}\''
+                      .format(datetime.datetime.now().time(),
+                              str(self.agent.jid).split('@')[0],
+                              msg.get_metadata('type'),
+                              msg.body))
                 self.agent.camera_drone_available = True
 
     class ReceiveMessFaultySentry(CyclicBehaviour):
         async def run(self):
             msg = await self.receive()  # wait for message for <timeout> seconds
             if msg:
-                print('Agent {} received a {} message: \'{}\''.format(str(self.agent.jid).split('@')[0],
-                                                                      msg.get_metadata('type'), msg.body))
-                self.agent.faulty_sentries.append(str(msg.body))
-                print(f'List of faulty sentries: self.agent.faulty_sentries')
+                print('[{}]    Agent [{}]    received a {} message: \'{}\''
+                      .format(datetime.datetime.now().time(),
+                              str(self.agent.jid).split('@')[0],
+                              msg.get_metadata('type'),
+                              msg.body))
+                if str(msg.body) not in self.agent.faulty_sentries:
+                    self.agent.faulty_sentries.append(str(msg.body))
+                print('[{}]    Agent [{}]    List of faulty sentries: {}'
+                      .format(datetime.datetime.now().time(),
+                              str(self.agent.jid).split('@')[0],
+                              self.agent.faulty_sentries))
 
     class SendMessCameraRequest(OneShotBehaviour):
         def __init__(self, calling_sentry):

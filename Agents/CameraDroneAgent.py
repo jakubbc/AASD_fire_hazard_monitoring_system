@@ -1,5 +1,6 @@
 import random
 import time
+import datetime
 
 from spade import agent
 from spade.behaviour import OneShotBehaviour, CyclicBehaviour
@@ -17,13 +18,16 @@ class CameraDroneAgent(agent.Agent):
             msg = await self.receive()  # wait for message for <timeout> seconds
             if msg:
                 self.agent.served_sentry = msg.body
-                print('Agent {} received a {} message: \'{}\''.format(str(self.agent.jid).split('@')[0],
-                                                                      msg.get_metadata('type'), self.agent.served_sentry))
+                print('[{}]    Agent [{}]    received a {} message: \'{}\''
+                      .format(datetime.datetime.now().time(),
+                              str(self.agent.jid).split('@')[0],
+                              msg.get_metadata('type'),
+                              self.agent.served_sentry))
                 # fly to sentry
                 time.sleep(1)
                 # simulate checking for fire
                 fire_rand = random.uniform(0, 1)
-                if fire_rand >= 0:  # probability of no fire in simulation
+                if fire_rand <= 0:  # probability of no fire in simulation
                     # call extinguisher drone
                     self.agent.add_behaviour(self.agent.SendMessExtinguisherRequest())
                     # wait for confirmation from extinguisher that fire was extinguished
@@ -40,10 +44,13 @@ class CameraDroneAgent(agent.Agent):
 
     class ReceiveMessExtinguisherConfirmation(OneShotBehaviour):
         async def run(self):
-            msg = await self.receive(timeout=120)  # wait for message for <timeout> seconds
+            msg = await self.receive(timeout=15)  # wait for message for <timeout> seconds
             if msg:
-                print('Agent {} received a {} message: \'{}\''.format(str(self.agent.jid).split('@')[0],
-                                                                      msg.get_metadata('type'), msg.body))
+                print('[{}]    Agent [{}]    received a {} message: \'{}\''
+                      .format(datetime.datetime.now().time(),
+                              str(self.agent.jid).split('@')[0],
+                              msg.get_metadata('type'),
+                              msg.body))
             else:
                 self.agent.add_behaviour(self.agent.SendMessCallEmergency())
             # fly back to base
