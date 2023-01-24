@@ -34,10 +34,10 @@ if __name__ == '__main__':
         # future.result()  # wait for agent to initialize
 
     for sentryName, logging, neighbors in sentries:
-        agent = SentryAgent(str(sentryName + "@jabbers.one"), "aasd_erif")
+        agent = SentryAgent(str(sentryName) + '@jabbers.one', "aasd_erif")
         agent.set("neighbors", neighbors)
         agent.set("logging", logging)
-        agent.set("mySelf", str(sentryName + "@jabbers.one"))
+        agent.set("mySelf", str(sentryName))
         agent.start(auto_register=True)
 
         # future.result()  # wait for agent to initialize

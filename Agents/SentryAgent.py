@@ -40,22 +40,25 @@ class SentryAgent(agent.Agent):
                 # break/kill agent here?
             else:
                 if processMeasurements(json.loads(results.body)) == 1:
-                    # TODO
-                    # call service, sensor damaged
+                    msg = Message(to="caller1@jabbers.one")
+                    msg.set_metadata("type", "faultySentry")
+                    msg.body = self.get('mySelf')
                     if self.get('logging'):
                         print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    1 sensors discovered fire - maintainence service called")
-                    await agent.Agent._async_stop(self.agent)
+                    await self.send(msg)
+                    # await agent.Agent._async_stop(self.agent)
                 elif processMeasurements(json.loads(results.body)) == 2:
-                    # TODO
-                    # call service
-                    self.agent.add_behaviour(self.agent.CheckNeighbours())
+                    msg = Message(to="caller1@jabbers.one")
+                    msg.set_metadata("type", "faultySentry")
+                    msg.body = self.get('mySelf')
                     if self.get('logging'):
-                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    2 sensors discovered fire!")
+                        print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    2 sensors discovered fire - maintainence service and neighbours called")
+                    await self.send(msg)
+                    self.agent.add_behaviour(self.agent.CheckNeighbours())
                 elif processMeasurements(json.loads(results.body)) == 3:
                     self.agent.add_behaviour(self.agent.CheckNeighbours())
                     if self.get('logging'):
                         print(f"[{datetime.datetime.now().time()}]    [{self.get('mySelf')}]    3 sensors discovered fire!")
-
 
     class SendMeasurementsService(CyclicBehaviour):
         def get_state(self):
@@ -116,24 +119,12 @@ class SentryAgent(agent.Agent):
                     self.neighborResults = []  # reset results
 
                     if positiveCount == 0:
-                        msg = Message(to='camera1@jabbers.one')
-                        msg.set_metadata("type", "faultySentry")
+                        msg = Message(to='caller1@jabbers.one')
+                        msg.set_metadata("type", "smallFire")
                         msg.body = self.get('mySelf')
                         await self.send(msg)
-                    elif positiveCount == 1: # 1 positive result (from neighbor) fire or not? call camera
-                        msg = Message(to='camera1@jabbers.one')
-                        msg.set_metadata("type", "cameraRequest")
-                        # TODO make coordinate parameter
-                        msg.body = '1'
-                        await self.send(msg)
-                    elif positiveCount == 2: #2 positive results -> smal fire
-                        msg = Message(to='extinguisher1@jabbers.one')
-                        msg.set_metadata("type", "smallFire")
-                        # TODO make coordinate parameter
-                        msg.body = '1'
-                        await self.send(msg)
-                    else: #more than 2 positive results -> big fire
-                        msg = Message(to='extinguisher1@jabbers.one')
+                    elif positiveCount >= 1: # 1 positive result (from neighbor) fire or not? call camera
+                        msg = Message(to='caller1@jabbers.one')
                         msg.set_metadata("type", "callEmergency")
                         msg.body = self.get('mySelf')
                         await self.send(msg)
